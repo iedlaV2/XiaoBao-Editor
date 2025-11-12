@@ -4,11 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusDiv = document.getElementById('status');
 
     function updateStatus(fontName) {
-        if (fontName) {
-            statusDiv.textContent = `Loaded: ${fontName}`;
-        } else {
-            statusDiv.textContent = 'No font loaded.';
-        }
+        statusDiv.textContent = fontName ? `Loaded: ${fontName}` : 'No font loaded.';
     }
 
     function applyFontToPage(fontData) {
@@ -24,11 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fontUploader.addEventListener('change', (event) => {
         const file = event.target.files[0];
-        if (!file) { return; }
+        if (!file) return;
 
         const reader = new FileReader();
         reader.readAsDataURL(file);
-
         reader.onload = () => {
             const fontData = { name: file.name, url: reader.result };
             chrome.storage.local.set({ customFont: fontData }, () => {
