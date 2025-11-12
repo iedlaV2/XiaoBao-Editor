@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "XiaoBao Editor",
+    "version": "1.0",
+    "description": "XiaoBao Font Editor",
+
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting",
+        "webRequest"
+    ],
+    "host_permissions": [
+    "https://tsinglanstudent.schoolis.cn/*" 
+  ],
+    "background":{
+        "service_worker":"background.js"
+    },
+    "action":{
+        "default_popup": "popup.html"
+    },
+
+    "content_scripts": [
+        {
+            "matches": ["https://tsinglanstudent.schoolis.cn/*"],
+            "js": ["content.js"]
+        }
+    ]
+}

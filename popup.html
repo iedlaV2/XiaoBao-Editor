@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Font Uploader</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            width: 250px;
+            padding: 15px;
+        }
+        h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+        #font-uploader {
+            display: none;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            background-color: #f0f0f0;
+            font-size: 1em;
+        }
+        #upload-label {
+            background-color: #4285f4;
+            color: white;
+            border-color: #4285f4;
+        }
+        #status {
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h3>Custom Font</h3>
+    <input type="file" id="font-uploader" accept=".ttf,.otf,.woff,.woff2"/>
+    <label for="font-uploader" id="upload-label" class="button">Upload Font</label>
+    <button id="remove-font" class="button">Reset to Default</button>
+    <div id="status">No font loaded.</div>
+    <script src="popup.js"></script>
+</body>
+</html>
