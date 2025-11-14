@@ -16,8 +16,40 @@ document.addEventListener('DOMContentLoaded', () => {
             return [];
         }
     }
-    
 
+    async function fetchGPA(semesterId) {
+        const gpaApiUrl = 'https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetGpa?semesterId=' + semesterId;
+        try {
+            const response = await fetch(gpaApiUrl, { credentials: 'include' });
+            if (!response.ok) throw new Error(`Network response error.`);
+            const parsedJson = await response.json();
+            return parsedJson.data;
+        } catch (error) {
+            console.error("Error fetching GPA:", error);
+            return null;
+        }
+
+    async function fetchCoursesdata(semesterId) {
+        const getcoursesApiUrl = 'https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStuSubjectListForSelect?semesterId=' + semesterId;
+        try {
+            const response = await fetch(getcoursesApiUrl, { credentials: 'include' });
+            if (!response.ok) throw new Error(`Network response error.`);
+            const parsedJson = await response.json();
+            return parsedJson.data.map(course => {
+                const courseName =  course.name;
+                const courseId = course.id;
+            });
+        } catch (error) {
+            console.error("Error fetching Courses:", error);
+            return [];
+            }
+        
+
+
+
+        }
+
+    
     async function fetchDashboardData(semesterId, allCourseData) {
         console.log(`Fetching data for semester ID: ${semesterId}`);
         return allCourseData[semesterId] || { gpa: "N/A", courses: [] };
