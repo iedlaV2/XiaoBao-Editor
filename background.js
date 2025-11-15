@@ -12,18 +12,14 @@ chrome.webRequest.onCompleted.addListener(
 
         if (isTargetUrl && details.statusCode === 200) {
             const match = details.url.match(/learningtaskid=(\d+)/i);
-            if (!match || !match[1]) {
-                return;
-            }
-            const taskId = match[1];
+            if (!match || !match[1]) return;
 
-            if (processedTaskIds.has(taskId)) {
-                return;
-            }
+            const taskId = match[1];
+            if (processedTaskIds.has(taskId)) return;
             
             fetch(details.url, { credentials: 'include' })
                 .then(response => {
-                    if (!response.ok) throw new Error(`Network response error.`);
+                    if (!response.ok) throw new Error("Network response error.");
                     return response.json();
                 })
                 .then(parsedJson => {
@@ -49,8 +45,14 @@ function sendScoresToContentScript(responseData, tabId, taskId) {
 
         const message = { type: "SCORE_DATA", data: scores };
 
-        chrome.tabs.sendMessage(tabId, message);
+        chrome.tabs.sendMessage(tabId, message, () => {
+            if (chrome.runtime.lastError) {
+                console.log("Could not send score popup message, content script probably not ready yet.");
+            }
+        });
+
         processedTaskIds.add(taskId);
+
     } catch (error) {
         console.error("Error processing or sending score data:", error);
     }
