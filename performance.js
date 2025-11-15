@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    const currentSemester = 31627;
+
     const gpaValueElement = document.getElementById('gpa-value');
     const semesterSelectorElement = document.getElementById('semester-selector');
     const courseListElement = document.getElementById('course-list');
@@ -29,27 +31,84 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
 
-    async function fetchCoursesdata(semesterId) {
+    async function fetchCoursesList() {
         const getcoursesApiUrl = 'https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStuSubjectListForSelect?semesterId=' + semesterId;
         try {
             const response = await fetch(getcoursesApiUrl, { credentials: 'include' });
             if (!response.ok) throw new Error(`Network response error.`);
             const parsedJson = await response.json();
-            return parsedJson.data.map(course => {
-                const courseName =  course.name;
-                const courseId = course.id;
-            });
+            return parsedJson.data.map(course => ({
+            courseName: course.name,
+            courseId: course.id
+        }));
         } catch (error) {
             console.error("Error fetching Courses:", error);
             return [];
-            }
-        
-
-
-
+            }        
         }
+    
+    async function getCourseScore(coursedata) {
+        try {
+            for (const id of coursedata) {
+                const response = await fetch(`https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId=${id.classId}&subjectId=${id.subjectId}&semesterId=${semesterId}`, { credentials: 'include' });  
+                if (!response.ok) throw new Error(`Network response error for subject ${id.courseId}`);
+                const parsedJson = await response.json();
+                return parsedJson.data;
+            }
+
+
+        } catch (error) {            
+            console.error("Error fetching Course Score:", error);
+            return [];
+        }
+    }
 
     
+    async function getClassId(taskId) {
+        try {
+            const response = await fetch(`https://tsinglanstudent.schoolis.cn/api/LearningTask/GetDetail?learningTaskId=${taskId}`, { credentials: 'include' });
+            if (!response.ok) throw new Error(`Network response error.`);
+            const parsedJson = await response.json();
+            return [parsedJson.data.classId, parsedJson.data.subjectId];
+        } catch (error) {
+            console.error("Error fetching Class ID:", error);
+            return null;
+        }
+    } 
+
+async function getClassData(subjects) { 
+    let classData = [];
+    try {
+        for (const subject of subjects) {
+            const response = await fetch(`https://tsinglanstudent.schoolis.cn/api/LearningTask/GetList?semesterId=${semesterId}&subjectId=${subject.courseId}&typeId=null&mode=null&pageIndex=1&pageSize=100`, { credentials: 'include' });
+            if (!response.ok) throw new Error(`Network response error for subject ${subject.courseId}`);
+        
+            const parsedJson = await response.json();
+            const assignmentsForThisSubject = parsedJson.data.list.map(courseData => {
+                const taskId = courseData.id;
+                const classId = getClassId(taskId);
+
+                return {
+                    classId: classId[0],
+                    subjectId: classId[1],
+                    score: courseData.score || "N/A",
+                    type: courseData.typeEName,
+                    name: courseData.name 
+                };
+            });
+            classData.push({courseName: subject.courseName, 
+                subjectId: assignmentsForThisSubject.subjectId,     
+                classId: assignmentsForThisSubject.classId,
+                assignments: assignmentsForThisSubject});
+        }
+        return classData;
+
+    } catch (error) {
+        console.error("Error fetching Class Data:", error);
+        return [];
+    }
+}
+
     async function fetchDashboardData(semesterId, allCourseData) {
         console.log(`Fetching data for semester ID: ${semesterId}`);
         return allCourseData[semesterId] || { gpa: "N/A", courses: [] };
@@ -112,11 +171,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function initialize() {
         const semesters = await fetchSemesters();
+        const gpa = await fetchGPA(semesterId);
+        const courseList = await fetchCoursesList(semesterId);
+        const courseData = await getClassData(courseList);
+        const courseScore = 
         
         if (semesters.length > 0) {
             populateSemesterSelector(semesters);
 
-            const initialSemesterId = semesters[0].id;
+            const initialSemesterId = semesters[1].id;
 
             const initialDashboardData = await fetchDashboardData(initialSemesterId, sampleCourseData);
             updateDashboardUI(initialDashboardData);
